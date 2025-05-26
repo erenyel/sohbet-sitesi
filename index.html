@@ -5,27 +5,147 @@
     <title>İki Kişilik Sohbet</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script src="https://unpkg.com/emoji-picker-element"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #128C7E; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        #container { width: 100%; max-width: 500px; height: 100vh; background-color: #ece5dd; border-radius: 10px; display: flex; flex-direction: column; box-shadow: 0 4px 10px rgba(0,0,0,0.3); overflow: hidden; }
-        h2 { background-color: #075E54; color: white; margin: 0; padding: 20px; text-align: center; font-size: 26px; }
-        #login, #chat { flex: 1; display: none; flex-direction: column; padding: 20px; justify-content: center; align-items: center; }
-        #login input { width: 80%; padding: 15px; margin: 10px 0; font-size: 18px; border-radius: 10px; border: 1px solid #ccc; }
-        #login button { padding: 10px 20px; font-size: 18px; border-radius: 10px; background-color: #25D366; color: white; border: none; }
-        #status { font-size: 12px; color: gray; margin-bottom: 5px; text-align: center; }
-        #messages { background: #fff; flex: 1; overflow-y: scroll; padding: 10px; }
-        .message { display: flex; align-items: center; margin: 10px 0; padding: 8px 12px; border-radius: 20px; max-width: 75%; animation: fadeIn 0.3s ease; }
-        .me { background-color: #dcf8c6; margin-left: auto; }
-        .other { background-color: #fff; border: 1px solid #ccc; margin-right: auto; }
-        .avatar { width: 30px; height: 30px; border-radius: 50%; margin-right: 8px; }
-        .text-block { display: flex; flex-direction: column; }
-        .time { font-size: 10px; color: gray; margin-top: 3px; }
-        #inputArea { display: flex; padding: 10px; background-color: #f0f0f0; position: sticky; bottom: 0; }
-        #messageInput { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ccc; margin-right: 10px; resize: none; height: 40px; }
-        #inputArea button { padding: 10px 15px; background-color: #25D366; color: white; border: none; border-radius: 50%; font-size: 18px; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @media (max-width: 600px) { #container { border-radius: 0; } }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #128C7E;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #container {
+            width: 100%;
+            max-width: 700px;  /* genişletildi */
+            height: 100vh;
+            background-color: #ece5dd;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            overflow: hidden;
+            padding: 10px;  /* dış kenar boşluğu */
+        }
+        h2 {
+            background-color: #075E54;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            font-size: 26px;
+        }
+        #login, #chat {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+        #login input {
+            width: 80%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 18px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+        }
+        #login button {
+            padding: 10px 20px;
+            font-size: 18px;
+            border-radius: 10px;
+            background-color: #25D366;
+            color: white;
+            border: none;
+        }
+        #status {
+            font-size: 12px;
+            color: gray;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        #messages {
+            background: #fff;
+            flex: 1;
+            overflow-y: scroll;
+            padding: 20px;  /* içeride geniş nefes */
+        }
+        .message {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 8px 12px;
+            border-radius: 20px;
+            max-width: 85%;  /* genişletildi */
+            animation: fadeIn 0.3s ease;
+            word-wrap: break-word;
+        }
+        .me {
+            background-color: #dcf8c6;
+            margin-left: auto;
+        }
+        .other {
+            background-color: #f0f0f0;
+            margin-right: auto;
+        }
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .text-block {
+            display: flex;
+            flex-direction: column;
+        }
+        .time {
+            font-size: 10px;
+            color: gray;
+            margin-top: 3px;
+        }
+        #inputArea {
+            display: flex;
+            padding: 10px;
+            background-color: #f0f0f0;
+            position: sticky;
+            bottom: 0;
+            align-items: center;
+        }
+        #messageInput {
+            flex: 1;
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            margin: 0 10px;
+            resize: none;
+            height: 40px;
+        }
+        #inputArea button {
+            padding: 10px 15px;
+            background-color: #25D366;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 18px;
+        }
+        emoji-picker {
+            position: absolute;
+            bottom: 70px;
+            right: 30px;
+            z-index: 10;
+            display: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 600px) {
+            #container { max-width: 100%; border-radius: 0; }
+            .message { max-width: 95%; }
+        }
     </style>
 </head>
 <body>
@@ -44,9 +164,11 @@
         <div id="status"></div>
         <div id="messages"></div>
         <div id="inputArea">
+            <button onclick="toggleEmojiPicker()"><i class="fa fa-smile"></i></button>
             <textarea id="messageInput" placeholder="Mesaj yaz..."></textarea>
             <button onclick="sendMessage()"><i class="fa fa-paper-plane"></i></button>
         </div>
+        <emoji-picker id="emojiPicker"></emoji-picker>
     </div>
 </div>
 
@@ -104,18 +226,8 @@
         }
     }
 
-    document.getElementById('username').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            login();
-        }
-    });
-    document.getElementById('password').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            login();
-        }
-    });
+    document.getElementById('username').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(), login(); });
+    document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(), login(); });
 
     function sendMessage() {
         const input = document.getElementById('messageInput');
@@ -140,7 +252,7 @@
             autoScroll = atBottom;
         });
 
-        db.ref('messages').on('child_added', function(snapshot) {
+        db.ref('messages').on('child_added', snapshot => {
             const msg = snapshot.val();
             const msgElement = document.createElement('div');
             msgElement.classList.add('message');
@@ -168,15 +280,13 @@
             msgElement.appendChild(textBlock);
             messagesDiv.appendChild(msgElement);
 
-            if (autoScroll) {
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            }
+            if (autoScroll) messagesDiv.scrollTop = messagesDiv.scrollHeight;
         });
     }
 
     function listenForStatus() {
         const statusDiv = document.getElementById('status');
-        db.ref('status/' + otherUser).on('value', function(snapshot) {
+        db.ref('status/' + otherUser).on('value', snapshot => {
             const status = snapshot.val();
             if (status && status.online) {
                 statusDiv.innerText = `${otherUser} çevrimiçi`;
@@ -187,6 +297,16 @@
             }
         });
     }
+
+    function toggleEmojiPicker() {
+        const picker = document.getElementById('emojiPicker');
+        picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+    }
+
+    document.getElementById('emojiPicker').addEventListener('emoji-click', event => {
+        const input = document.getElementById('messageInput');
+        input.value += event.detail.unicode;
+    });
 </script>
 
 </body>
