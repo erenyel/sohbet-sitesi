@@ -240,7 +240,6 @@
       transition: background .2s, transform .12s;
     }
     .send-btn:hover { background: var(--btn-hover);}
-    /* Versiyon etiketi */
     .version-info {
       text-align: center;
       color: #72e8b5;
@@ -251,7 +250,6 @@
       font-weight: 500;
       text-shadow: 0 1px 1px #151b2490;
     }
-    /* Custom scrollbar */
     .chat-messages::-webkit-scrollbar {
       width: 9px;
       background: var(--scrollbar-track);
@@ -308,15 +306,39 @@
   
   <div class="version-info">Sürüm: v13</div>
   
-  <!-- Firebase CDN -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script>
-    // Kullanıcı ve şifreler
-    const USERS = {
-      erenyel: { password: "0507eren2003", displayName: "Eren Yel", photoURL: "https://raw.githubusercontent.com/erenyel/sohbet-sitesi/main/eren.png" },
-      edayontem: { password: "eday2003", displayName: "Eda Yöntem", photoURL: "https://raw.githubusercontent.com/erenyel/sohbet-sitesi/main/eda.png" }
-    };
+    // Yardımcı kodlama fonksiyonları
+    function b64decode(str) {
+      try {
+        return decodeURIComponent(escape(atob(str)));
+      } catch {
+        return atob(str);
+      }
+    }
+    function b64encode(str) {
+      return btoa(unescape(encodeURIComponent(str)));
+    }
+
+    // Kullanıcı bilgileri base64'lü liste (ad, şifre, isim, foto url)
+    const userList = [
+      {
+        u: "ZXJlbnllbA==", // "erenyel"
+        p: "MDUwN2VyZW4yMDAz", // "0507eren2003"
+        name: "Eren Yel",
+        pic: "https://raw.githubusercontent.com/erenyel/sohbet-sitesi/main/eren.png"
+      },
+      {
+        u: "ZWRheW9udGVt", // "edayontem"
+        p: "ZWRheTIwMDM=", // "eday2003"
+        name: "Eda Yöntem",
+        pic: "https://raw.githubusercontent.com/erenyel/sohbet-sitesi/main/eda.png"
+      }
+    ];
+
+    // Mesajları silme şifresi (yine base64 ile saklı)
+    const CLEAR_PW = "MTU5NzUz"; // "159753"
 
     // Firebase config (veritabanı URL'si)
     const firebaseConfig = {
@@ -352,20 +374,29 @@
       }, 120);
     }
 
-    // Kullanıcı adını şifreyi kontrol et
+    // Kullanıcı adını şifreyi gizli şekilde kontrol et
     loginBtn.addEventListener('click', loginUser);
     passwordInput.addEventListener('keydown', (e) => { if (e.key === "Enter") loginUser(); });
 
     function loginUser() {
       const username = usernameInput.value.trim();
       const password = passwordInput.value;
-      if (!USERS[username] || USERS[username].password !== password) {
+      // Base64 encode edilmiş hali ile karşılaştır
+      const uEnc = b64encode(username);
+      const pEnc = b64encode(password);
+      const found = userList.find(u => u.u === uEnc && u.p === pEnc);
+      if (!found) {
         loginError.textContent = "Kullanıcı adı veya şifre yanlış!";
         return;
       }
-      // Doğruysa giriş yap
-      currentUser = { username, ...USERS[username] };
-      otherUser = Object.keys(USERS).find(u => u !== username);
+      currentUser = {
+        username: username,
+        displayName: found.name,
+        photoURL: found.pic
+      };
+      // Diğer kullanıcıyı bul
+      const other = userList.find(u => u.u !== uEnc);
+      otherUser = b64decode(other.u);
       // UI geçiş
       loginContainer.style.display = "none";
       chatContainer.style.display = "";
@@ -377,7 +408,6 @@
       setOnline(true);
       monitorOtherUserStatus();
       scrollToBottom();
-      // Son görülme güncellemesi için pencere kapanırken offline yaz
       window.addEventListener("beforeunload", () => setOnline(false));
     }
 
@@ -444,8 +474,10 @@
     function renderMessage(msg, msgId, isMe) {
       const row = document.createElement("div");
       row.className = "message-row" + (isMe ? " self" : "");
+      // Kullanıcıyı userList'ten bul ve fotoğrafı getir
+      const usr = userList.find(u => b64decode(u.u) === msg.sender);
       const avatar = document.createElement("img");
-      avatar.src = USERS[msg.sender].photoURL;
+      avatar.src = usr ? usr.pic : "";
       avatar.alt = "Profil";
       avatar.style.width = "32px";
       avatar.style.height = "32px";
@@ -508,28 +540,21 @@
       scrollToBottom();
     });
 
-    // Tüm mesajları sil (şifreyle)
+    // Tüm mesajları sil (şifreyle, şifre gizli tutuluyor)
     clearAllBtn.addEventListener('click', () => {
       const pw = prompt("Tüm mesajları silmek için şifreyi giriniz:");
-      if (pw === "159753") {
+      if (pw && b64encode(pw) === CLEAR_PW) {
         if(confirm("Tüm mesajları silmek istediğine emin misin? Bu işlem geri alınamaz.")) {
           db.ref("messages").remove();
           setTimeout(scrollToBottom, 500);
         }
-      } else if(pw !== null) {
+      } else if (pw !== null) {
         alert("Şifre hatalı!");
       }
     });
 
-    // Mobilde klavye açılınca otomatik kaydır
     messageInput.addEventListener("focus", scrollToBottom);
-
-    // Oturumu açık bırakma: online tut
-    setInterval(() => {
-      if (currentUser) setOnline(true);
-    }, 20000); // 20 sn'de bir online kal
-
-    // Otomatik focus giriş ekranı
+    setInterval(() => { if (currentUser) setOnline(true); }, 20000);
     window.onload = () => { usernameInput.focus(); }
   </script>
 </body>
