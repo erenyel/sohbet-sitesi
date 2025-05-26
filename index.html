@@ -8,12 +8,33 @@
   <!-- Emoji Picker CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@5.0.4/dist/emoji-button.min.css">
   <style>
+    :root {
+      --primary-bg: #222937;
+      --primary-bg-gradient: linear-gradient(120deg, #222937 0%, #37425a 100%);
+      --chat-bg: #151b24;
+      --bubble-me: linear-gradient(125deg, #0f8ecf 0%, #2560a7 100%);
+      --bubble-other: linear-gradient(120deg, #343e53 0%, #45516a 100%);
+      --header: #222937;
+      --input-bg: #232a3b;
+      --input-border: #3a4258;
+      --btn-gradient: linear-gradient(90deg, #329dba 30%, #4569ad 100%);
+      --btn-hover: #276b8d;
+      --emoji-btn-bg: #232a3b;
+      --emoji-btn-color: #85e1e6;
+      --scrollbar-thumb: #394a64;
+      --scrollbar-track: #20242e;
+      --text-main: #eaf4ff;
+      --text-meta: #8aa3c8;
+      --text-online: #72e8b5;
+      --bubble-shadow: 0 2px 12px #242e3855;
+    }
     body {
       margin: 0;
       padding: 0;
-      background: linear-gradient(120deg, #74ebd5 0%, #ACB6E5 100%);
+      background: var(--primary-bg-gradient);
       font-family: 'Montserrat', sans-serif;
       min-height: 100vh;
+      color: var(--text-main);
       display: flex;
       flex-direction: column;
     }
@@ -21,9 +42,9 @@
       max-width: 420px;
       width: 95vw;
       margin: 32px auto 0 auto;
-      background: rgba(255,255,255,0.93);
+      background: rgba(34,41,55,0.97);
       border-radius: 24px;
-      box-shadow: 0 6px 32px rgba(44,72,100,0.18);
+      box-shadow: 0 8px 32px rgba(44,72,100,0.24);
       padding: 28px 18px 18px 18px;
       animation: fadeIn .8s;
     }
@@ -34,10 +55,11 @@
     .login-title {
       font-size: 2rem;
       font-weight: 700;
-      color: #2e3d56;
+      color: #84fff9;
       text-align: center;
       margin-bottom: 24px;
       letter-spacing: 1px;
+      text-shadow: 0 1px 8px #15294090;
     }
     .login-fields {
       display: flex;
@@ -47,17 +69,19 @@
     .login-fields input {
       padding: 12px 14px;
       border-radius: 9px;
-      border: 1px solid #A8B6C8;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      color: var(--text-main);
       font-size: 1rem;
       transition: box-shadow .2s;
       outline: none;
     }
     .login-fields input:focus {
-      box-shadow: 0 2px 10px #9fd6eb63;
+      box-shadow: 0 2px 12px #43c6e4a2;
     }
     .login-btn {
       margin-top: 16px;
-      background: linear-gradient(90deg, #36D1C4 30%, #5B86E5 100%);
+      background: var(--btn-gradient);
       color: #fff;
       font-size: 1.13rem;
       font-weight: bold;
@@ -67,10 +91,11 @@
       cursor: pointer;
       letter-spacing: .5px;
       transition: background .2s, transform .1s;
+      box-shadow: 0 2px 8px #124e6788;
     }
-    .login-btn:hover { background: #36d1c4e6; transform: scale(1.03);}
+    .login-btn:hover { background: var(--btn-hover); transform: scale(1.03);}
     .login-error {
-      color: #c63945;
+      color: #ff5e75;
       text-align: center;
       margin-top: 12px;
       font-size: 1rem;
@@ -82,7 +107,10 @@
       gap: 12px;
       margin-bottom: 8px;
       padding-bottom: 12px;
-      border-bottom: 1px solid #E3EEF7;
+      border-bottom: 1px solid #293448;
+      background: var(--header);
+      border-radius: 18px 18px 0 0;
+      box-shadow: 0 2px 8px #151b2417;
     }
     .chat-header img {
       width: 48px; height: 48px;
@@ -98,13 +126,15 @@
     .chat-header .user-name {
       font-size: 1.1rem;
       font-weight: bold;
-      color: #2e3d56;
+      color: #b3e9ff;
+      text-shadow: 0 1px 6px #15294060;
     }
     .chat-header .user-status {
       font-size: 0.98rem;
-      color: #43a047;
+      color: var(--text-online);
       font-weight: 500;
       min-height: 18px;
+      text-shadow: 0 1px 5px #23333c8c;
     }
     .logout-btn {
       margin-left: auto;
@@ -112,21 +142,21 @@
       font-size: 0.99rem;
       border: none;
       border-radius: 8px;
-      background: #d5e8fa;
-      color: #366bb2;
+      background: #1d2535;
+      color: #72e8b5;
       cursor: pointer;
       transition: background .2s;
     }
-    .logout-btn:hover { background: #b3d5f9; }
+    .logout-btn:hover { background: #293348; }
     .chat-messages {
       margin: 12px 0;
       height: 380px;
       max-height: 55vh;
       overflow-y: auto;
-      background: #f6fbfd;
+      background: var(--chat-bg);
       border-radius: 16px;
       padding: 18px 10px 12px 10px;
-      box-shadow: 0 1px 8px #c9e9f42c;
+      box-shadow: var(--bubble-shadow);
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -141,29 +171,26 @@
     }
     .message-row.self { flex-direction: row-reverse; }
     .message-bubble {
-      background: linear-gradient(125deg, #C1DFE7 0%, #DEECDD 100%);
+      background: var(--bubble-other);
       padding: 11px 16px;
       border-radius: 20px 20px 6px 20px;
       font-size: 1.01rem;
+      color: var(--text-main);
       position: relative;
       word-break: break-word;
-      box-shadow: 0 0 8px #add6e141;
+      box-shadow: var(--bubble-shadow);
       animation: slideIn .35s;
       transition: background .15s;
       min-width: 38px;
       max-width: 72vw;
     }
-    @keyframes slideIn {
-      from {opacity: 0; transform: translateY(16px);}
-      to {opacity: 1; transform: translateY(0);}
-    }
     .message-row.self .message-bubble {
-      background: linear-gradient(125deg, #70e1f5 0%, #87ffe1 100%);
+      background: var(--bubble-me);
       border-radius: 20px 20px 20px 6px;
     }
     .message-meta {
       font-size: 0.78rem;
-      color: #92a1b6;
+      color: var(--text-meta);
       margin: 0 5px;
       margin-top: 3px;
       display: flex;
@@ -174,14 +201,14 @@
     .delete-btn {
       background: none;
       border: none;
-      color: #d95f5f;
+      color: #ff748b;
       font-size: 1rem;
       cursor: pointer;
       margin-left: 5px;
       opacity: 0.7;
       transition: color .2s;
     }
-    .delete-btn:hover { color: #ba2121; opacity: 1; }
+    .delete-btn:hover { color: #e83a58; opacity: 1; }
     .chat-input-row {
       display: flex;
       gap: 5px;
@@ -191,18 +218,18 @@
     .chat-input-row input {
       flex: 1;
       border-radius: 14px;
-      border: 1px solid #a8b6c8;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      color: var(--text-main);
       padding: 11px 16px;
       font-size: 1.08rem;
       outline: none;
       transition: box-shadow .15s;
     }
-    .chat-input-row input:focus { box-shadow: 0 2px 10px #9fd6eb50; }
+    .chat-input-row input:focus { box-shadow: 0 2px 10px #43c6e4a2; }
     .emoji-btn, .send-btn {
-      background: linear-gradient(90deg, #36D1C4 30%, #5B86E5 100%);
       border: none;
       border-radius: 14px;
-      color: #fff;
       font-size: 1.34rem;
       min-width: 48px;
       cursor: pointer;
@@ -212,19 +239,33 @@
       justify-content: center;
       transition: background .2s, transform .12s;
     }
-    .emoji-btn { background: #f6fbfd; color: #5B86E5; border: 1px solid #A8B6C8;}
-    .emoji-btn:hover { background: #dbefff;}
-    .send-btn:hover { background: #36d1c4e8;}
+    .emoji-btn {
+      background: var(--emoji-btn-bg);
+      color: var(--emoji-btn-color);
+      border: 1px solid var(--input-border);
+    }
+    .emoji-btn:hover { background: #28384e;}
+    .send-btn { background: var(--btn-gradient); color: #fff; }
+    .send-btn:hover { background: var(--btn-hover);}
     /* Versiyon etiketi */
     .version-info {
       text-align: center;
-      color: #5B86E5;
+      color: #72e8b5;
       margin: 18px 0 9px 0;
       font-size: 1.04rem;
       letter-spacing: .5px;
-      opacity: 0.82;
+      opacity: 0.90;
       font-weight: 500;
-      text-shadow: 0 1px 1px #fff3;
+      text-shadow: 0 1px 1px #151b2490;
+    }
+    /* Custom scrollbar */
+    .chat-messages::-webkit-scrollbar {
+      width: 9px;
+      background: var(--scrollbar-track);
+    }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+      border-radius: 9px;
     }
     @media (max-width: 700px) {
       .chat-container, .login-container {
@@ -368,10 +409,10 @@
         const data = snap.val();
         if (data && data.online) {
           onlineStatus.textContent = "Çevrimiçi";
-          onlineStatus.style.color = "#43a047";
+          onlineStatus.style.color = "#72e8b5";
         } else if (data && data.lastSeen) {
           onlineStatus.textContent = "Son görülme: " + timeAgo(data.lastSeen);
-          onlineStatus.style.color = "#808094";
+          onlineStatus.style.color = "#8aa3c8";
         } else {
           onlineStatus.textContent = "";
         }
@@ -417,7 +458,7 @@
       avatar.style.width = "32px";
       avatar.style.height = "32px";
       avatar.style.borderRadius = "50%";
-      avatar.style.border = "1.7px solid #ACB6E5";
+      avatar.style.border = "1.7px solid #349ecf";
       avatar.style.objectFit = "cover";
       row.appendChild(avatar);
 
@@ -475,22 +516,33 @@
       scrollToBottom();
     });
 
-    // Emoji picker
-    const picker = new EmojiButton({
-      position: 'top-end',
-      theme: 'auto',
-      zIndex: 1111,
-      autoHide: true,
-      rows: 6,
-      columns: 8
-    });
-    emojiBtn.addEventListener('click', () => {
-      picker.togglePicker(emojiBtn);
-    });
-    picker.on('emoji', emoji => {
-      messageInput.value += emoji;
-      messageInput.focus();
-    });
+    // Emoji picker (FIX)
+    let picker;
+    setTimeout(() => { // DOM hazır olunca oluştur
+      picker = new EmojiButton({
+        theme: 'dark',
+        zIndex: 2001,
+        autoHide: true,
+        rows: 7,
+        columns: 8
+      });
+      emojiBtn.addEventListener('click', () => {
+        picker.togglePicker(emojiBtn);
+      });
+      picker.on('emoji', emoji => {
+        // İmlecin olduğu yere emoji ekle
+        insertAtCursor(messageInput, emoji);
+        messageInput.focus();
+      });
+    }, 350);
+
+    // İmleçte emoji ekleme
+    function insertAtCursor(input, textToInsert) {
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      input.value = input.value.slice(0, start) + textToInsert + input.value.slice(end);
+      input.selectionStart = input.selectionEnd = start + textToInsert.length;
+    }
 
     // Mobilde klavye açılınca otomatik kaydır
     messageInput.addEventListener("focus", scrollToBottom);
