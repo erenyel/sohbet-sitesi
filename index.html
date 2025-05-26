@@ -74,11 +74,13 @@
             padding: 20px;
             background-image: url('https://www.transparenttextures.com/patterns/white-paper.png');
             background-size: cover;
+            display: flex;
+            flex-direction: column;
         }
         .message {
             display: flex;
             align-items: center;
-            margin: 10px 0;
+            margin: 5px 0;
             padding: 10px 15px;
             border-radius: 20px;
             max-width: 90%;
@@ -260,7 +262,7 @@
             msgElement.appendChild(textBlock);
             messagesDiv.appendChild(msgElement);
 
-            // Her zaman en alta kaydır
+            // Her yeni mesaj geldiğinde aşağı kaydır
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         });
     }
