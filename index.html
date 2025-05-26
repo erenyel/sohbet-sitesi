@@ -3,10 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sohbet Sitesi v12</title>
+  <title>Sohbet Sitesi v13</title>
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
-  <!-- Emoji Picker CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@5.0.4/dist/emoji-button.min.css">
   <style>
     :root {
       --primary-bg: #222937;
@@ -136,8 +134,8 @@
       min-height: 18px;
       text-shadow: 0 1px 5px #23333c8c;
     }
-    .logout-btn {
-      margin-left: auto;
+    .logout-btn, .clear-btn {
+      margin-left: 8px;
       padding: 7px 16px;
       font-size: 0.99rem;
       border: none;
@@ -147,7 +145,7 @@
       cursor: pointer;
       transition: background .2s;
     }
-    .logout-btn:hover { background: #293348; }
+    .logout-btn:hover, .clear-btn:hover { background: #293348; }
     .chat-messages {
       margin: 12px 0;
       height: 380px;
@@ -227,7 +225,7 @@
       transition: box-shadow .15s;
     }
     .chat-input-row input:focus { box-shadow: 0 2px 10px #43c6e4a2; }
-    .emoji-btn, .send-btn {
+    .send-btn {
       border: none;
       border-radius: 14px;
       font-size: 1.34rem;
@@ -237,15 +235,10 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      background: var(--btn-gradient);
+      color: #fff;
       transition: background .2s, transform .12s;
     }
-    .emoji-btn {
-      background: var(--emoji-btn-bg);
-      color: var(--emoji-btn-color);
-      border: 1px solid var(--input-border);
-    }
-    .emoji-btn:hover { background: #28384e;}
-    .send-btn { background: var(--btn-gradient); color: #fff; }
     .send-btn:hover { background: var(--btn-hover);}
     /* Versiyon etiketi */
     .version-info {
@@ -303,22 +296,21 @@
         <span class="user-name" id="displayName"></span>
         <span class="user-status" id="onlineStatus"></span>
       </div>
+      <button class="clear-btn" id="clearAllBtn" title="Tüm mesajları sil">🗑️</button>
       <button class="logout-btn" id="logoutBtn">Çıkış</button>
     </div>
     <div class="chat-messages" id="chatMessages"></div>
     <form class="chat-input-row" id="messageForm" autocomplete="off">
-      <button class="emoji-btn" type="button" id="emojiBtn">&#128515;</button>
       <input type="text" id="messageInput" maxlength="350" placeholder="Mesaj yaz..." />
       <button class="send-btn" type="submit">&#9658;</button>
     </form>
   </div>
   
-  <div class="version-info">Sürüm: v12</div>
+  <div class="version-info">Sürüm: v13</div>
   
-  <!-- Firebase ve Emoji Picker CDN -->
+  <!-- Firebase CDN -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@5.0.4/dist/emoji-button.min.js"></script>
   <script>
     // Kullanıcı ve şifreler
     const USERS = {
@@ -351,7 +343,7 @@
     const chatMessages = document.getElementById('chatMessages');
     const messageInput = document.getElementById('messageInput');
     const messageForm = document.getElementById('messageForm');
-    const emojiBtn = document.getElementById('emojiBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
 
     // Mesajları kaydırma fonksiyonu
     function scrollToBottom() {
@@ -516,33 +508,18 @@
       scrollToBottom();
     });
 
-    // Emoji picker (FIX)
-    let picker;
-    setTimeout(() => { // DOM hazır olunca oluştur
-      picker = new EmojiButton({
-        theme: 'dark',
-        zIndex: 2001,
-        autoHide: true,
-        rows: 7,
-        columns: 8
-      });
-      emojiBtn.addEventListener('click', () => {
-        picker.togglePicker(emojiBtn);
-      });
-      picker.on('emoji', emoji => {
-        // İmlecin olduğu yere emoji ekle
-        insertAtCursor(messageInput, emoji);
-        messageInput.focus();
-      });
-    }, 350);
-
-    // İmleçte emoji ekleme
-    function insertAtCursor(input, textToInsert) {
-      const start = input.selectionStart;
-      const end = input.selectionEnd;
-      input.value = input.value.slice(0, start) + textToInsert + input.value.slice(end);
-      input.selectionStart = input.selectionEnd = start + textToInsert.length;
-    }
+    // Tüm mesajları sil (şifreyle)
+    clearAllBtn.addEventListener('click', () => {
+      const pw = prompt("Tüm mesajları silmek için şifreyi giriniz:");
+      if (pw === "159753") {
+        if(confirm("Tüm mesajları silmek istediğine emin misin? Bu işlem geri alınamaz.")) {
+          db.ref("messages").remove();
+          setTimeout(scrollToBottom, 500);
+        }
+      } else if(pw !== null) {
+        alert("Şifre hatalı!");
+      }
+    });
 
     // Mobilde klavye açılınca otomatik kaydır
     messageInput.addEventListener("focus", scrollToBottom);
