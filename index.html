@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sohbet Sitesi v14</title>
+  <title>Sohbet Sitesi v15</title>
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
   <style>
     :root {
-      /* Koyu Tema Değerleri */
       --primary-bg: #222937;
       --primary-bg-gradient: linear-gradient(120deg, #222937 0%, #37425a 100%);
       --chat-bg: #151b24;
       --bubble-me: linear-gradient(125deg, #0f8ecf 0%, #2560a7 100%);
       --bubble-other: linear-gradient(120deg, #343e53 0%, #45516a 100%);
+      --bubble-edit: #c5eaff;
       --header: #222937;
       --input-bg: #232a3b;
       --input-border: #3a4258;
@@ -29,6 +29,8 @@
       --theme-switch-thumb-dark: #fff;
       --theme-switch-thumb-light: #222;
       --theme-switch-border: #203040;
+      --me-bubble: var(--bubble-me);
+      --me-bubble-text: #eaf4ff;
     }
     body[data-theme="light"] {
       --primary-bg: #f3f7fa;
@@ -36,6 +38,7 @@
       --chat-bg: #f8fbfd;
       --bubble-me: linear-gradient(125deg, #95e2fa 0%, #d2f8ee 100%);
       --bubble-other: linear-gradient(120deg, #e5eaff 0%, #f5f9ff 100%);
+      --bubble-edit: #c7e1ff;
       --header: #f3f7fa;
       --input-bg: #fff;
       --input-border: #cddbef;
@@ -52,6 +55,8 @@
       --theme-switch-thumb-dark: #222;
       --theme-switch-thumb-light: #fff;
       --theme-switch-border: #bbc6fa;
+      --me-bubble: var(--bubble-me);
+      --me-bubble-text: #222;
     }
     body {
       margin: 0;
@@ -65,8 +70,8 @@
       transition: background 0.6s, color 0.3s;
     }
     .login-container, .chat-container {
-      max-width: 420px;
-      width: 95vw;
+      max-width: 440px;
+      width: 96vw;
       margin: 32px auto 0 auto;
       background: rgba(34,41,55,0.97);
       background: var(--primary-bg);
@@ -75,6 +80,7 @@
       padding: 28px 18px 18px 18px;
       animation: fadeIn .8s;
       transition: background .5s;
+      position: relative;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(16px);}
@@ -98,12 +104,9 @@
       z-index: 20;
       user-select: none;
     }
-    .theme-switch input[type="checkbox"] {
-      display: none;
-    }
+    .theme-switch input[type="checkbox"] { display: none; }
     .switch-label {
-      display: flex;
-      align-items: center;
+      display: flex; align-items: center;
       cursor: pointer;
       background: var(--theme-switch-bg);
       border: 2px solid var(--theme-switch-border);
@@ -111,51 +114,29 @@
       width: 54px; height: 28px;
       transition: background .45s;
       box-shadow: 0 2px 8px #0d223055;
-      position: relative;
-      padding: 2px;
+      position: relative; padding: 2px;
     }
     .switch-thumb {
       height: 22px; width: 22px;
       border-radius: 50%;
       background: var(--theme-switch-thumb);
-      position: absolute;
-      top: 2px;
-      left: 2px;
+      position: absolute; top: 2px; left: 2px;
       transition: left .36s cubic-bezier(.8,1.8,.5,.8), background .45s;
       box-shadow: 0 1px 8px #222c4444;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       font-size: 1.05rem;
     }
-    .switch-icon {
-      position: absolute;
-      left: 9px;
-      top: 6px;
-      font-size: 1.18rem;
-      opacity: 0.6;
-      pointer-events: none;
-      transition: color .4s;
-    }
-    .switch-icon.sun {
-      left: 29px;
-      color: #f9d23b;
-    }
-    .switch-icon.moon {
-      left: 7px;
-      color: #3ed8ec;
-    }
+    .switch-icon { position: absolute; left: 9px; top: 6px; font-size: 1.18rem; opacity: 0.6; pointer-events: none; }
+    .switch-icon.sun { left: 29px; color: #f9d23b;}
+    .switch-icon.moon { left: 7px; color: #3ed8ec;}
     .theme-switch input:checked + .switch-label .switch-thumb {
-      left: 30px;
-      background: var(--theme-switch-thumb-dark);
+      left: 30px; background: var(--theme-switch-thumb-dark);
     }
     .theme-switch input:not(:checked) + .switch-label .switch-thumb {
       background: var(--theme-switch-thumb-light);
     }
     .login-fields {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
+      display: flex; flex-direction: column; gap: 18px;
     }
     .login-fields input {
       padding: 12px 14px;
@@ -191,13 +172,36 @@
       margin-top: 12px;
       font-size: 1rem;
     }
-    /* Chat container styles */
+    /* Kısa not alanı */
+    .note-area {
+      background: var(--chat-bg);
+      color: var(--text-main);
+      border-radius: 12px;
+      padding: 8px 12px 2px 12px;
+      font-size: 1rem;
+      margin-bottom: 7px;
+      margin-top: 2px;
+      min-height: 30px;
+      outline: none;
+      border: 1px solid var(--input-border);
+      width: 100%;
+      transition: background .5s, color .3s;
+      resize: none;
+    }
+    .note-area::placeholder { color: var(--text-meta);}
+    .note-label { font-size: 0.93rem; color: var(--text-meta); margin-bottom: 3px;}
+    .export-btn {
+      padding: 4px 16px; border-radius: 7px;
+      background: var(--btn-gradient); color: #fff;
+      border: none; font-size: 0.97rem;
+      cursor: pointer; margin-left: 10px;
+      transition: background .2s;
+    }
+    .export-btn:hover { background: var(--btn-hover);}
+    /* Chat header ve status list */
     .chat-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-      padding-bottom: 10px;
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 8px; padding-bottom: 10px;
       border-bottom: 1px solid #293448;
       background: var(--header);
       border-radius: 18px 18px 0 0;
@@ -212,186 +216,161 @@
       border: 2.5px solid #74ebd5;
       background: #eee;
       transition: border .3s;
+      cursor: pointer;
     }
     .user-info-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      flex: 1;
-      min-width: 0;
+      display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0;
     }
     .status-list {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      font-size: 0.97rem;
+      display: flex; flex-direction: column; gap: 2px; font-size: 0.97rem;
     }
     .status-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--text-online);
-      font-weight: 500;
-      min-height: 18px;
-      transition: color .5s;
+      display: flex; align-items: center; gap: 6px;
+      color: var(--text-online); font-weight: 500;
+      min-height: 18px; transition: color .5s;
       font-size: 0.97rem;
+      cursor: pointer;
     }
     .status-dot {
       display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-right: 3px;
-      background: #6cffae;
-      box-shadow: 0 1px 4px #55ffa441;
+      width: 10px; height: 10px;
+      border-radius: 50%; margin-right: 3px;
+      background: #6cffae; box-shadow: 0 1px 4px #55ffa441;
       transition: background .4s;
     }
     .status-item.offline { color: var(--text-meta);}
     .status-item.offline .status-dot { background: #b2c7e5; }
     .status-user {
-      font-weight: bold;
-      color: var(--text-main);
-      margin-right: 7px;
-      min-width: 70px;
+      font-weight: bold; color: var(--text-main);
+      margin-right: 7px; min-width: 70px;
       transition: color .5s;
-      font-size: 0.99rem;
-      letter-spacing: .2px;
+      font-size: 0.99rem; letter-spacing: .2px;
     }
+    /* Profil kartı */
+    .profile-card {
+      position: absolute; z-index: 1000; top: 48px; left: 0;
+      background: var(--chat-bg);
+      color: var(--text-main);
+      border-radius: 15px; box-shadow: 0 2px 18px #13233369;
+      padding: 15px 18px; min-width: 170px; min-height: 54px;
+      font-size: 1rem;
+      animation: cardFade .3s;
+    }
+    @keyframes cardFade { from{opacity:0;transform:scale(0.93);} to{opacity:1;transform:scale(1);} }
+    .profile-card img { width: 40px; height: 40px; border-radius: 50%; border:2px solid #86deff; object-fit:cover;}
+    .profile-card .card-name { font-weight:bold; font-size:1.09rem; margin:0 0 5px 0;}
+    .profile-card .card-username { font-size:0.95rem; color:var(--text-meta);}
+    .profile-card .card-close { position:absolute; right:8px; top:7px; font-size:1.12rem; color:#aaa; background:none; border:none; cursor:pointer;}
     .logout-btn, .clear-btn {
-      margin-left: 8px;
-      padding: 7px 16px;
+      margin-left: 8px; padding: 7px 16px;
       font-size: 0.99rem;
-      border: none;
-      border-radius: 8px;
-      background: #1d2535;
-      color: #72e8b5;
-      cursor: pointer;
-      transition: background .2s;
+      border: none; border-radius: 8px;
+      background: #1d2535; color: #72e8b5;
+      cursor: pointer; transition: background .2s;
     }
     .logout-btn:hover, .clear-btn:hover { background: #293348; }
     .chat-messages {
-      margin: 12px 0;
-      height: 380px;
-      max-height: 55vh;
-      overflow-y: auto;
-      background: var(--chat-bg);
-      border-radius: 16px;
-      padding: 18px 10px 12px 10px;
+      margin: 12px 0; height: 380px; max-height: 55vh;
+      overflow-y: auto; background: var(--chat-bg);
+      border-radius: 16px; padding: 18px 10px 12px 10px;
       box-shadow: var(--bubble-shadow);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      scroll-behavior: smooth;
-      transition: box-shadow .3s, background .5s;
+      display: flex; flex-direction: column; gap: 10px;
+      scroll-behavior: smooth; transition: box-shadow .3s, background .5s;
     }
     .message-row {
-      display: flex;
-      align-items: flex-end;
-      gap: 8px;
-      position: relative;
+      display: flex; align-items: flex-end; gap: 8px; position: relative;
+      animation: slideIn .4s;
     }
+    @keyframes slideIn { from{opacity:0;transform:translateY(32px);} to{opacity:1;transform:translateY(0);} }
     .message-row.self { flex-direction: row-reverse; }
     .message-bubble {
       background: var(--bubble-other);
-      padding: 11px 16px;
-      border-radius: 20px 20px 6px 20px;
-      font-size: 1.01rem;
-      color: var(--text-main);
-      position: relative;
-      word-break: break-word;
+      padding: 11px 16px; border-radius: 20px 20px 6px 20px;
+      font-size: 1.01rem; color: var(--text-main);
+      position: relative; word-break: break-word;
       box-shadow: var(--bubble-shadow);
-      animation: slideIn .35s;
-      transition: background .15s, color .3s;
-      min-width: 38px;
-      max-width: 72vw;
+      transition: background .2s, color .3s;
+      min-width: 38px; max-width: 72vw;
+      cursor: pointer;
+      border: none;
     }
     .message-row.self .message-bubble {
-      background: var(--bubble-me);
+      background: var(--me-bubble);
+      color: var(--me-bubble-text);
       border-radius: 20px 20px 20px 6px;
     }
-    .message-meta {
-      font-size: 0.78rem;
-      color: var(--text-meta);
-      margin: 0 5px;
-      margin-top: 3px;
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      justify-content: flex-end;
-      transition: color .4s;
+    .bubble-editing {
+      background: var(--bubble-edit) !important;
+      color: #2861b7 !important;
+      animation: editPulse .7s infinite alternate;
     }
+    @keyframes editPulse { from{box-shadow: 0 0 0 0 #74bcffa8;} to{box-shadow: 0 0 10px 2px #79d1ff66;} }
+    .bubble-edited { font-size:0.86em; color:#58b8f5; margin-left:6px;}
+    .bubble-okundu { margin-left:7px; color:#58b8f5; }
+    .bubble-goruldu { margin-left:7px; color:#1be27e; }
+    .message-meta {
+      font-size: 0.78rem; color: var(--text-meta);
+      margin: 0 5px; margin-top: 3px;
+      display: flex; align-items: center; gap: 3px;
+      justify-content: flex-end; transition: color .4s;
+    }
+    .edit-btn {
+      background: none; border: none; color: #58b8f5;
+      font-size: 1.08em; cursor: pointer; margin-left: 5px; opacity: 0.7; transition: color .2s;
+    }
+    .edit-btn:hover { color: #2083e4; opacity: 1; }
     .delete-btn {
-      background: none;
-      border: none;
-      color: #ff748b;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-left: 5px;
-      opacity: 0.7;
-      transition: color .2s;
+      background: none; border: none; color: #ff748b;
+      font-size: 1rem; cursor: pointer; margin-left: 5px; opacity: 0.7; transition: color .2s;
     }
     .delete-btn:hover { color: #e83a58; opacity: 1; }
     .chat-input-row {
-      display: flex;
-      gap: 5px;
-      align-items: stretch;
-      margin-top: 5px;
+      display: flex; gap: 5px; align-items: stretch; margin-top: 5px;
     }
     .chat-input-row input {
-      flex: 1;
-      border-radius: 14px;
-      border: 1px solid var(--input-border);
-      background: var(--input-bg);
-      color: var(--text-main);
-      padding: 11px 16px;
-      font-size: 1.08rem;
-      outline: none;
-      transition: box-shadow .15s, background .5s, color .3s;
+      flex: 1; border-radius: 14px; border: 1px solid var(--input-border);
+      background: var(--input-bg); color: var(--text-main);
+      padding: 11px 16px; font-size: 1.08rem; outline: none; transition: box-shadow .15s, background .5s, color .3s;
     }
     .chat-input-row input:focus { box-shadow: 0 2px 10px #43c6e4a2; }
     .send-btn {
-      border: none;
-      border-radius: 14px;
-      font-size: 1.34rem;
-      min-width: 48px;
-      cursor: pointer;
-      margin-left: 2px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--btn-gradient);
-      color: #fff;
-      transition: background .2s, transform .12s;
+      border: none; border-radius: 14px;
+      font-size: 1.34rem; min-width: 48px; cursor: pointer; margin-left: 2px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--btn-gradient); color: #fff; transition: background .2s, transform .12s;
     }
     .send-btn:hover { background: var(--btn-hover);}
+    .search-box {
+      width: 100%; background: var(--input-bg);
+      color: var(--text-main); border: 1px solid var(--input-border);
+      border-radius: 9px; padding: 7px 12px;
+      font-size: 1rem; margin: 5px 0 9px 0; outline: none;
+      transition: box-shadow .15s, background .5s, color .3s;
+    }
+    .search-box:focus { box-shadow: 0 2px 10px #43c6e4a2; }
+    .writing-status {
+      text-align: left; color: #86bfff; margin: -8px 0 3px 8px; font-size: 0.97rem; min-height: 20px; transition: color .4s;
+      animation: writePulse .6s infinite alternate;
+    }
+    @keyframes writePulse { from{opacity:0.77;} to{opacity:1;} }
     .version-info {
-      text-align: center;
-      color: #72e8b5;
-      margin: 18px 0 9px 0;
-      font-size: 1.04rem;
-      letter-spacing: .5px;
-      opacity: 0.90;
-      font-weight: 500;
-      text-shadow: 0 1px 1px #151b2490;
+      text-align: center; color: #72e8b5; margin: 18px 0 9px 0; font-size: 1.04rem; letter-spacing: .5px; opacity: 0.90; font-weight: 500; text-shadow: 0 1px 1px #151b2490;
     }
     .chat-messages::-webkit-scrollbar {
-      width: 9px;
-      background: var(--scrollbar-track);
+      width: 9px; background: var(--scrollbar-track);
     }
     .chat-messages::-webkit-scrollbar-thumb {
-      background: var(--scrollbar-thumb);
-      border-radius: 9px;
+      background: var(--scrollbar-thumb); border-radius: 9px;
     }
+    .color-pick {
+      width:24px;height:24px;border-radius:50%;border:2px solid #fff;cursor:pointer;margin:0 3px;box-shadow:0 1px 6px #bbb;
+      display:inline-block;vertical-align:middle;transition:border .2s,box-shadow .2s;
+    }
+    .color-pick.selected { border:2.5px solid #09c1ee; box-shadow:0 1px 16px #1bf5c3a8; }
+    .note-saved-info {font-size:0.82em; color:#4efbf1;}
     @media (max-width: 700px) {
-      .chat-container, .login-container {
-        padding: 16px 4vw 10px 4vw;
-        max-width: 100vw;
-        min-width: 0;
-      }
-      .chat-messages {
-        height: 66vw; max-height: 68vw;
-        min-height: 200px;
-      }
+      .chat-container, .login-container { padding: 16px 4vw 10px 4vw; max-width: 100vw; min-width: 0;}
+      .chat-messages { height: 66vw; max-height: 68vw; min-height: 200px;}
       .chat-header img { width: 38px; height: 38px;}
     }
     @media (max-width: 480px) {
@@ -401,7 +380,7 @@
   </style>
 </head>
 <body>
-  <!-- Tema Butonu (her iki ekranda da) -->
+  <!-- Tema butonu -->
   <div class="theme-switch" id="themeSwitchBox">
     <input type="checkbox" id="themeToggle">
     <label class="switch-label" for="themeToggle">
@@ -422,25 +401,41 @@
   </div>
   
   <div class="chat-container" id="chatContainer" style="display: none;">
+    <div class="note-label">Kısa Notun (Yalnızca Sana Görünür)</div>
+    <textarea class="note-area" id="noteArea" maxlength="160" placeholder="Notunu yaz..."></textarea>
+    <span class="note-saved-info" id="noteSavedInfo" style="display:none;">✓ Kaydedildi</span>
+
     <div class="chat-header">
-      <img id="profilePic" src="" alt="Profil Fotoğrafı">
+      <img id="profilePic" src="" alt="Profil Fotoğrafı" style="cursor:pointer">
       <div class="user-info-wrap">
         <span class="user-name" id="displayName"></span>
-        <div class="status-list" id="statusList">
-          <!-- Kullanıcı durumları JS ile buraya gelecek -->
-        </div>
+        <div class="status-list" id="statusList"></div>
       </div>
       <button class="clear-btn" id="clearAllBtn" title="Tüm mesajları sil">🗑️</button>
       <button class="logout-btn" id="logoutBtn">Çıkış</button>
     </div>
+    <input type="text" class="search-box" id="searchBox" placeholder="Sohbet içinde ara...">
+    <div class="writing-status" id="writingStatus"></div>
     <div class="chat-messages" id="chatMessages"></div>
     <form class="chat-input-row" id="messageForm" autocomplete="off">
       <input type="text" id="messageInput" maxlength="350" placeholder="Mesaj yaz..." />
       <button class="send-btn" type="submit">&#9658;</button>
     </form>
+    <div style="margin:10px 0 3px 0;">
+      <span style="color:var(--text-meta);font-size:0.97em;">Balon Rengi:</span>
+      <span class="color-pick" style="background:#26abf0;" data-color="#26abf0,#0f8ecf"></span>
+      <span class="color-pick" style="background:#43f3ba;" data-color="#43f3ba,#0fcfa5"></span>
+      <span class="color-pick" style="background:#f9de51;" data-color="#f9de51,#f7ba1e"></span>
+      <span class="color-pick" style="background:#fd93e7;" data-color="#fd93e7,#c447f7"></span>
+      <span class="color-pick" style="background:#ff5c6a;" data-color="#ff5c6a,#e92645"></span>
+      <span class="color-pick" style="background:#f09728;" data-color="#f09728,#e6601a"></span>
+      <span class="color-pick" style="background:#bfbfbf;" data-color="#bfbfbf,#888"></span>
+      <span class="color-pick" style="background:#37425a;" data-color="#37425a,#222937"></span>
+      <button class="export-btn" id="exportBtn" title="Sohbeti TXT olarak indir">Dışa Aktar</button>
+    </div>
   </div>
   
-  <div class="version-info">Sürüm: v14</div>
+  <div class="version-info">Sürüm: v15</div>
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -448,13 +443,11 @@
     // --- Tema değiştirme ---
     const themeToggle = document.getElementById('themeToggle');
     const themeSwitchBox = document.getElementById('themeSwitchBox');
-    // Animasyonlu başlatma, localStorage kaydı
     function setTheme(theme) {
       document.body.setAttribute('data-theme', theme);
       localStorage.setItem('theme', theme);
       themeToggle.checked = (theme === 'light');
     }
-    // Başlangıç teması: localStorage varsa oradan, yoksa otomatik
     (function(){
       let sysPref = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
       let savedTheme = localStorage.getItem('theme') || sysPref;
@@ -462,24 +455,14 @@
     })();
     themeToggle.addEventListener('change', () => {
       setTheme(themeToggle.checked ? 'light' : 'dark');
-      // Hafif animasyon için body'e class ekleyebilirsin
       document.body.classList.add('theme-switched');
       setTimeout(()=>document.body.classList.remove('theme-switched'),500);
     });
 
-    // Tema butonunu her iki ekranda da görünür tutmak için:
-    function fixThemeBtnZ() {
-      let chatActive = chatContainer.style.display !== "none";
-      themeSwitchBox.style.zIndex = chatActive ? "50" : "20";
-    }
-
-    // ---- Kullanıcı kodlama ve saklama ---
+    // -- Kullanıcı kodlama ve saklama --
     function b64decode(str) {
-      try {
-        return decodeURIComponent(escape(atob(str)));
-      } catch {
-        return atob(str);
-      }
+      try { return decodeURIComponent(escape(atob(str))); }
+      catch { return atob(str);}
     }
     function b64encode(str) {
       return btoa(unescape(encodeURIComponent(str)));
@@ -500,18 +483,15 @@
     ];
     const CLEAR_PW = "MTU5NzUz"; // "159753"
 
-    // Firebase config (veritabanı URL'si)
+    // Firebase config
     const firebaseConfig = {
       databaseURL: "https://sohbet-sitesi-2d0d8-default-rtdb.firebaseio.com/"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Kullanıcı oturumu
-    let currentUser = null;
-    let otherUser = null;
-
-    // ELEMENTLER
+    let currentUser = null, otherUser = null, otherDisplay = null, msgCache = {};
+    // --- ELEMENTLER ---
     const loginContainer = document.getElementById('loginContainer');
     const chatContainer = document.getElementById('chatContainer');
     const usernameInput = document.getElementById('username');
@@ -526,14 +506,13 @@
     const messageForm = document.getElementById('messageForm');
     const clearAllBtn = document.getElementById('clearAllBtn');
     const statusList = document.getElementById('statusList');
+    const writingStatus = document.getElementById('writingStatus');
+    const noteArea = document.getElementById('noteArea');
+    const noteSavedInfo = document.getElementById('noteSavedInfo');
+    const searchBox = document.getElementById('searchBox');
+    const exportBtn = document.getElementById('exportBtn');
 
-    function scrollToBottom() {
-      setTimeout(() => {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      }, 120);
-    }
-
-    // Kullanıcı adını şifreyi gizli şekilde kontrol et
+    // Kullanıcı girişi
     loginBtn.addEventListener('click', loginUser);
     passwordInput.addEventListener('keydown', (e) => { if (e.key === "Enter") loginUser(); });
 
@@ -555,6 +534,7 @@
       // Diğer kullanıcıyı bul
       const other = userList.find(u => u.u !== uEnc);
       otherUser = b64decode(other.u);
+      otherDisplay = other.name;
       // UI geçiş
       loginContainer.style.display = "none";
       chatContainer.style.display = "";
@@ -568,6 +548,7 @@
       scrollToBottom();
       window.addEventListener("beforeunload", () => setOnline(false));
       fixThemeBtnZ();
+      loadPersonal();
     }
 
     // Çıkış
@@ -585,8 +566,6 @@
         lastSeen: online ? null : new Date().toISOString()
       });
     }
-
-    // Her iki kullanıcının durumunu izle ve güncelle
     function monitorStatuses() {
       const allNames = userList.map(u => b64decode(u.u));
       allNames.forEach(name => {
@@ -595,31 +574,63 @@
           updateStatusList();
         });
       });
+      // Yazıyor takibi
+      db.ref("writing/" + otherUser).on("value", snap => {
+        if (snap.val() && snap.val().active) {
+          writingStatus.textContent = otherDisplay + " yazıyor...";
+        } else {
+          writingStatus.textContent = "";
+        }
+      });
     }
     function updateStatusList() {
-      // Sıra: önce giriş yapan (current), sonra diğer
       const all = [
-        { 
-          name: currentUser.username,
-          display: currentUser.displayName,
-        },
-        { 
-          name: otherUser,
-          display: userList.find(u=>b64decode(u.u)===otherUser).name,
-        }
+        { name: currentUser.username, display: currentUser.displayName },
+        { name: otherUser, display: otherDisplay }
       ];
       statusList.innerHTML = all.map(u => {
         const st = userStatuses[u.name] || {};
         let online = st.online;
         let txt = online ? "Çevrimiçi" : (st.lastSeen ? ("Son görülme: " + timeAgo(st.lastSeen)) : "");
         let cls = online ? "" : "offline";
-        return `<span class="status-item ${cls}">
+        return `<span class="status-item ${cls}" data-user="${u.name}">
           <span class="status-dot"></span>
           <span class="status-user">${u.display}</span>
           <span class="status-text">${txt}</span>
         </span>`;
       }).join("");
     }
+    // Profil kartı açma
+    statusList.addEventListener("click", function(e){
+      let userItem = e.target.closest('.status-item');
+      if (!userItem) return;
+      let uname = userItem.getAttribute("data-user");
+      let udata = userList.find(u=>b64decode(u.u)===uname);
+      if (!udata) return;
+      showProfileCard(udata, userItem);
+    });
+    function showProfileCard(udata, anchorElem) {
+      closeProfileCard();
+      let card = document.createElement("div");
+      card.className = "profile-card";
+      card.innerHTML = `
+        <img src="${udata.pic}" alt="Profil"><div style="display:inline-block;vertical-align:top;margin-left:10px;">
+        <div class="card-name">${udata.name}</div>
+        <div class="card-username">@${b64decode(udata.u)}</div>
+        </div>
+        <button class="card-close" onclick="this.parentElement.remove()">×</button>
+      `;
+      anchorElem.appendChild(card);
+      // Otomatik kapansın
+      setTimeout(()=>card && card.remove(),4200);
+    }
+    function closeProfileCard() {
+      let ex = document.querySelector('.profile-card');
+      if(ex) ex.remove();
+    }
+    document.addEventListener("click", e=>{
+      if(!e.target.closest('.profile-card') && !e.target.closest('.status-item')) closeProfileCard();
+    });
 
     function timeAgo(dateStr) {
       const date = new Date(dateStr);
@@ -631,27 +642,50 @@
       return date.toLocaleDateString('tr-TR') + " " + date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
     }
 
-    // Mesajları yükle
-    let firstLoad = true;
+    // Yazıyor (typing) kontrolü
+    let writingTimeout = null;
+    messageInput.addEventListener("input", ()=>{
+      db.ref("writing/"+currentUser.username).set({active:true});
+      if (writingTimeout) clearTimeout(writingTimeout);
+      writingTimeout = setTimeout(()=>db.ref("writing/"+currentUser.username).set({active:false}), 1500);
+    });
+
+    // Mesajları yükle (okundu, arama ve düzenleme destekli)
+    let firstLoad = true, searchFilter = "";
     function loadMessages() {
       db.ref("messages").off();
       chatMessages.innerHTML = `<div style="text-align:center;color:#94adc3;font-size:1.01rem;margin-top:15px">Yükleniyor...</div>`;
       db.ref("messages").on("value", snap => {
         chatMessages.innerHTML = "";
-        const msgs = snap.val() || {};
-        Object.entries(msgs).sort((a,b) => a[1].timestamp-b[1].timestamp).forEach(([msgId, msg]) => {
+        let msgs = snap.val() || {};
+        msgCache = msgs;
+        let entries = Object.entries(msgs).sort((a,b) => a[1].timestamp-b[1].timestamp);
+        // Okundu için son kendi mesajını bul
+        let myLastMsgKey = null, otherLastRead = null;
+        for (let i = entries.length-1; i >=0; --i) {
+          if (entries[i][1].sender === currentUser.username) {
+            myLastMsgKey = entries[i][0];
+            break;
+          }
+        }
+        // Filtreleme (arama kutusu)
+        if (searchFilter) {
+          entries = entries.filter(([id, msg]) => (msg.text || "").toLowerCase().includes(searchFilter));
+        }
+        entries.forEach(([msgId, msg]) => {
           const isMe = msg.sender === currentUser.username;
-          chatMessages.appendChild(renderMessage(msg, msgId, isMe));
+          chatMessages.appendChild(renderMessage(msg, msgId, isMe, myLastMsgKey));
         });
         scrollToBottom();
         if (firstLoad) {
           firstLoad = false;
           setTimeout(scrollToBottom, 500);
         }
+        markAsRead();
       });
     }
 
-    function renderMessage(msg, msgId, isMe) {
+    function renderMessage(msg, msgId, isMe, myLastMsgKey) {
       const row = document.createElement("div");
       row.className = "message-row" + (isMe ? " self" : "");
       // Kullanıcıyı userList'ten bul ve fotoğrafı getir
@@ -666,43 +700,68 @@
       avatar.style.objectFit = "cover";
       row.appendChild(avatar);
 
-      const bubble = document.createElement("div");
+      // Mesaj balonu ve düzenleme alanı
+      const bubble = document.createElement("button");
       bubble.className = "message-bubble";
       bubble.innerHTML = sanitize(msg.text);
+      if (msg.edit) bubble.innerHTML += ` <span class="bubble-edited">(düzenlendi)</span>`;
+      if (isMe && msg.okundu) bubble.innerHTML += ` <span class="bubble-okundu" title="Okundu">✔✔</span>`;
+      if (isMe && msgId === myLastMsgKey && msg.okundu) bubble.innerHTML += ` <span class="bubble-goruldu" title="Görüldü">🟢</span>`;
       row.appendChild(bubble);
 
+      // Mesajı düzenleme ve silme
       const meta = document.createElement("div");
       meta.className = "message-meta";
       meta.textContent = formatTime(msg.timestamp);
-
-      // Sadece kendi mesajını silebilir!
       if (isMe) {
+        const editBtn = document.createElement("button");
+        editBtn.className = "edit-btn";
+        editBtn.title = "Mesajı düzenle";
+        editBtn.innerHTML = "&#9998;";
+        editBtn.onclick = (e) => {
+          e.stopPropagation();
+          editMessage(msgId, msg.text, bubble);
+        };
+        meta.appendChild(editBtn);
+
         const delBtn = document.createElement("button");
         delBtn.className = "delete-btn";
         delBtn.title = "Mesajı sil";
         delBtn.innerHTML = "&#128465;";
-        delBtn.onclick = () => {
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
           if (confirm("Bu mesajı silmek istiyor musun?")) {
             db.ref("messages/" + msgId).remove();
           }
         };
         meta.appendChild(delBtn);
       }
-
       bubble.appendChild(meta);
+
       return row;
     }
 
     function sanitize(str) {
-      return str
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\n/g, "<br>");
+      return str.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
     }
-
     function formatTime(ts) {
       const d = new Date(ts);
       return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    }
+
+    // Mesaj düzenleme
+    let editing = null;
+    function editMessage(msgId, oldText, bubble) {
+      if (editing) return;
+      editing = msgId;
+      bubble.classList.add("bubble-editing");
+      let newText = prompt("Yeni mesaj:", oldText);
+      bubble.classList.remove("bubble-editing");
+      editing = null;
+      if (newText === null) return;
+      newText = newText.trim();
+      if (!newText) return alert("Boş mesaj olamaz!");
+      db.ref("messages/" + msgId).update({ text: newText, edit: true });
     }
 
     // Mesaj gönderme
@@ -720,7 +779,26 @@
       scrollToBottom();
     });
 
-    // Tüm mesajları sil (şifreyle, şifre gizli tutuluyor)
+    // Okundu bilgisi: son mesajı gördüm işaretle
+    function markAsRead() {
+      const msgs = Object.entries(msgCache || {});
+      let lastOther = null;
+      for (let i = msgs.length-1; i >= 0; --i) {
+        if (msgs[i][1].sender === otherUser) {
+          lastOther = msgs[i][0];
+          break;
+        }
+      }
+      if (lastOther) db.ref("messages/"+lastOther).update({ okundu: true });
+    }
+
+    // Mesaj filtreleme / arama
+    searchBox.addEventListener("input", function(){
+      searchFilter = this.value.trim().toLowerCase();
+      loadMessages();
+    });
+
+    // Tüm mesajları sil (şifreyle)
     clearAllBtn.addEventListener('click', () => {
       const pw = prompt("Tüm mesajları silmek için şifreyi giriniz:");
       if (pw && b64encode(pw) === CLEAR_PW) {
@@ -736,6 +814,60 @@
     messageInput.addEventListener("focus", scrollToBottom);
     setInterval(() => { if (currentUser) setOnline(true); }, 20000);
     window.onload = () => { usernameInput.focus(); fixThemeBtnZ(); }
+
+    // Balon renk teması seçimi
+    document.querySelectorAll('.color-pick').forEach(e=>{
+      e.addEventListener('click', function(){
+        document.querySelectorAll('.color-pick').forEach(x=>x.classList.remove("selected"));
+        this.classList.add("selected");
+        let colors = this.getAttribute("data-color").split(",");
+        document.documentElement.style.setProperty("--me-bubble", `linear-gradient(120deg, ${colors[0]} 0%, ${colors[1]} 100%)`);
+        localStorage.setItem("bubbleTheme", colors.join(","));
+      });
+    });
+    // Renk teması başlat
+    (function(){
+      let bubbleTheme = localStorage.getItem("bubbleTheme");
+      if(bubbleTheme){
+        let c = bubbleTheme.split(",");
+        document.documentElement.style.setProperty("--me-bubble", `linear-gradient(120deg, ${c[0]} 0%, ${c[1]} 100%)`);
+        document.querySelectorAll('.color-pick').forEach(x=>{
+          if(x.getAttribute("data-color")===bubbleTheme) x.classList.add("selected");
+        });
+      } else {
+        document.querySelectorAll('.color-pick')[0].classList.add("selected");
+      }
+    })();
+
+    // Not/günlük (localStorage'da kişiye özel)
+    function loadPersonal() {
+      let k = "chatNote_"+currentUser.username;
+      noteArea.value = localStorage.getItem(k) || "";
+    }
+    noteArea.addEventListener("input", function(){
+      let k = "chatNote_"+currentUser.username;
+      localStorage.setItem(k, this.value);
+      noteSavedInfo.style.display = "";
+      setTimeout(()=>noteSavedInfo.style.display="none", 1100);
+    });
+
+    // Sohbet dışa aktar
+    exportBtn.addEventListener('click', function(){
+      let txt = "Sohbet Kaydı\n---\n";
+      Object.values(msgCache || {}).forEach(m=>{
+        txt += `[${formatTime(m.timestamp)}] ${m.sender}: ${m.text}${m.edit?" (düzenlendi)":""}\n`;
+      });
+      let a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+      a.download = "sohbet.txt";
+      a.click();
+    });
+
+    // Tema butonu Z-Index düzeltmesi
+    function fixThemeBtnZ() {
+      let chatActive = chatContainer.style.display !== "none";
+      themeSwitchBox.style.zIndex = chatActive ? "50" : "20";
+    }
   </script>
 </body>
 </html>
