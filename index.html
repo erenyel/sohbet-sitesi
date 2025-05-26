@@ -5,38 +5,46 @@
     <title>İki Kişilik Sohbet</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; background-color: #ece5dd; }
-        h2 { color: #075E54; }
-        #login, #chat { display: none; }
-        #messages { background: #fff; border-radius: 5px; border: 1px solid #ccc; height: 400px; overflow-y: scroll; padding: 10px; margin-bottom: 10px; }
-        .message { display: flex; align-items: center; margin: 5px 0; padding: 8px; border-radius: 8px; max-width: 70%; clear: both; }
-        .me { background-color: #dcf8c6; align-self: flex-end; float: right; }
-        .other { background-color: #fff; border: 1px solid #ccc; float: left; }
+        body { font-family: Arial, sans-serif; background-color: #128C7E; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #container { width: 100%; max-width: 500px; height: 90vh; background-color: #ece5dd; border-radius: 10px; display: flex; flex-direction: column; box-shadow: 0 4px 10px rgba(0,0,0,0.3); overflow: hidden; }
+        h2 { background-color: #075E54; color: white; margin: 0; padding: 15px; text-align: center; }
+        #login, #chat { flex: 1; display: none; flex-direction: column; padding: 20px; }
+        #status { font-size: 12px; color: gray; margin-bottom: 5px; text-align: center; }
+        #messages { background: #fff; flex: 1; overflow-y: scroll; padding: 10px; }
+        .message { display: flex; align-items: center; margin: 10px 0; padding: 8px 12px; border-radius: 20px; max-width: 75%; animation: fadeIn 0.3s ease; }
+        .me { background-color: #dcf8c6; margin-left: auto; }
+        .other { background-color: #fff; border: 1px solid #ccc; margin-right: auto; }
         .avatar { width: 30px; height: 30px; border-radius: 50%; margin-right: 8px; }
-        #inputArea { display: flex; }
-        #inputArea input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ccc; margin-right: 5px; }
-        #inputArea button { padding: 10px 20px; background-color: #075E54; color: white; border: none; border-radius: 20px; }
-        #clearButton { background-color: #d9534f; margin-left: 10px; }
+        .text-block { display: flex; flex-direction: column; }
+        .time { font-size: 10px; color: gray; margin-top: 3px; }
+        #inputArea { display: flex; padding: 10px; background-color: #f0f0f0; }
+        #inputArea input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ccc; margin-right: 10px; }
+        #inputArea button { padding: 10px 15px; background-color: #25D366; color: white; border: none; border-radius: 50%; font-size: 18px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 600px) { #container { height: 100vh; border-radius: 0; } }
     </style>
 </head>
 <body>
 
-<h2>Giriş Yap</h2>
-<div id="login">
-    <input type="text" id="username" placeholder="Kullanıcı Adı">
-    <input type="password" id="password" placeholder="Şifre">
-    <button onclick="login()">Giriş Yap</button>
-    <p id="loginError" style="color: red;"></p>
-</div>
+<div id="container">
+    <h2>İki Kişilik Sohbet</h2>
 
-<div id="chat">
-    <h3 style="color:#075E54;">Hoş geldin, <span id="currentUser"></span></h3>
-    <div id="messages"></div>
-    <div id="inputArea">
-        <input type="text" id="messageInput" placeholder="Mesaj yaz...">
-        <button onclick="sendMessage()">Gönder</button>
-        <button id="clearButton" onclick="clearChat()">Sohbeti Sil</button>
+    <div id="login">
+        <input type="text" id="username" placeholder="Kullanıcı Adı">
+        <input type="password" id="password" placeholder="Şifre">
+        <button onclick="login()">Giriş Yap</button>
+        <p id="loginError" style="color: red; text-align:center;"></p>
+    </div>
+
+    <div id="chat">
+        <div id="status"></div>
+        <div id="messages"></div>
+        <div id="inputArea">
+            <input type="text" id="messageInput" placeholder="Mesaj yaz...">
+            <button onclick="sendMessage()"><i class="fa fa-paper-plane"></i></button>
+        </div>
     </div>
 </div>
 
@@ -59,14 +67,15 @@
         edayontem: 'eday2003'
     };
 
-    let currentUser = '';
-
     const userAvatars = {
         erenyel: 'eren.png',
         edayontem: 'eda.png'
     };
 
-    document.getElementById('login').style.display = 'block';
+    let currentUser = '';
+    let otherUser = '';
+
+    document.getElementById('login').style.display = 'flex';
 
     function login() {
         const username = document.getElementById('username').value.trim();
@@ -74,10 +83,16 @@
 
         if (validUsers[username] && validUsers[username] === password) {
             currentUser = username;
+            otherUser = Object.keys(validUsers).find(u => u !== username);
+
             document.getElementById('login').style.display = 'none';
-            document.getElementById('chat').style.display = 'block';
-            document.getElementById('currentUser').innerText = currentUser;
+            document.getElementById('chat').style.display = 'flex';
+
+            db.ref('status/' + currentUser).set({ online: true });
+            db.ref('status/' + currentUser).onDisconnect().set({ online: false, lastSeen: new Date().toLocaleString() });
+
             listenForMessages();
+            listenForStatus();
         } else {
             document.getElementById('loginError').innerText = 'Hatalı kullanıcı adı veya şifre!';
         }
@@ -111,24 +126,39 @@
             avatar.src = userAvatars[msg.user];
             avatar.className = 'avatar';
 
+            const textBlock = document.createElement('div');
+            textBlock.className = 'text-block';
+
             const textSpan = document.createElement('span');
-            textSpan.innerText = `${msg.user}: ${msg.text}`;
+            textSpan.innerText = msg.text;
+
+            const timeSpan = document.createElement('span');
+            const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            timeSpan.className = 'time';
+            timeSpan.innerText = time;
+
+            textBlock.appendChild(textSpan);
+            textBlock.appendChild(timeSpan);
 
             msgElement.appendChild(avatar);
-            msgElement.appendChild(textSpan);
+            msgElement.appendChild(textBlock);
             messagesDiv.appendChild(msgElement);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         });
     }
 
-    function clearChat() {
-        const confirmation = prompt("Sohbeti silmek için şifreyi girin:");
-        if (confirmation === '123') {
-            document.getElementById('messages').innerHTML = '';
-            alert('Sadece kendi ekranındaki sohbet temizlendi!');
-        } else {
-            alert('Yanlış şifre!');
-        }
+    function listenForStatus() {
+        const statusDiv = document.getElementById('status');
+        db.ref('status/' + otherUser).on('value', function(snapshot) {
+            const status = snapshot.val();
+            if (status && status.online) {
+                statusDiv.innerText = `${otherUser} çevrimiçi`;
+            } else if (status && status.lastSeen) {
+                statusDiv.innerText = `${otherUser} son görülme: ${status.lastSeen}`;
+            } else {
+                statusDiv.innerText = `${otherUser} çevrimdışı`;
+            }
+        });
     }
 </script>
 
