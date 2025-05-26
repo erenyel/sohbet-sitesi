@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sohbet Sitesi v15</title>
+  <title>Sohbet Sitesi v14</title>
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
   <style>
     :root {
+      /* Koyu Tema Değerleri */
       --primary-bg: #222937;
       --primary-bg-gradient: linear-gradient(120deg, #222937 0%, #37425a 100%);
       --chat-bg: #151b24;
@@ -17,14 +18,40 @@
       --input-border: #3a4258;
       --btn-gradient: linear-gradient(90deg, #329dba 30%, #4569ad 100%);
       --btn-hover: #276b8d;
-      --emoji-btn-bg: #232a3b;
-      --emoji-btn-color: #85e1e6;
       --scrollbar-thumb: #394a64;
       --scrollbar-track: #20242e;
       --text-main: #eaf4ff;
       --text-meta: #8aa3c8;
       --text-online: #72e8b5;
       --bubble-shadow: 0 2px 12px #242e3855;
+      --theme-switch-bg: #263554;
+      --theme-switch-thumb: #62f8ce;
+      --theme-switch-thumb-dark: #fff;
+      --theme-switch-thumb-light: #222;
+      --theme-switch-border: #203040;
+    }
+    body[data-theme="light"] {
+      --primary-bg: #f3f7fa;
+      --primary-bg-gradient: linear-gradient(120deg, #e2ecf6 0%, #e9e6ff 100%);
+      --chat-bg: #f8fbfd;
+      --bubble-me: linear-gradient(125deg, #95e2fa 0%, #d2f8ee 100%);
+      --bubble-other: linear-gradient(120deg, #e5eaff 0%, #f5f9ff 100%);
+      --header: #f3f7fa;
+      --input-bg: #fff;
+      --input-border: #cddbef;
+      --btn-gradient: linear-gradient(90deg, #7fd8e5 30%, #bbc6fa 100%);
+      --btn-hover: #b4c2e9;
+      --scrollbar-thumb: #b3cae0;
+      --scrollbar-track: #e7edf3;
+      --text-main: #223355;
+      --text-meta: #5c7da3;
+      --text-online: #23b34a;
+      --bubble-shadow: 0 2px 12px #c5c9e466;
+      --theme-switch-bg: #f0f3fc;
+      --theme-switch-thumb: #222;
+      --theme-switch-thumb-dark: #222;
+      --theme-switch-thumb-light: #fff;
+      --theme-switch-border: #bbc6fa;
     }
     body {
       margin: 0;
@@ -35,16 +62,19 @@
       color: var(--text-main);
       display: flex;
       flex-direction: column;
+      transition: background 0.6s, color 0.3s;
     }
     .login-container, .chat-container {
       max-width: 420px;
       width: 95vw;
       margin: 32px auto 0 auto;
       background: rgba(34,41,55,0.97);
+      background: var(--primary-bg);
       border-radius: 24px;
       box-shadow: 0 8px 32px rgba(44,72,100,0.24);
       padding: 28px 18px 18px 18px;
       animation: fadeIn .8s;
+      transition: background .5s;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(16px);}
@@ -58,6 +88,69 @@
       margin-bottom: 24px;
       letter-spacing: 1px;
       text-shadow: 0 1px 8px #15294090;
+      transition: color .4s;
+    }
+    body[data-theme="light"] .login-title { color: #369cd4; text-shadow: none; }
+    .theme-switch {
+      position: absolute;
+      top: 16px;
+      right: 26px;
+      z-index: 20;
+      user-select: none;
+    }
+    .theme-switch input[type="checkbox"] {
+      display: none;
+    }
+    .switch-label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      background: var(--theme-switch-bg);
+      border: 2px solid var(--theme-switch-border);
+      border-radius: 18px;
+      width: 54px; height: 28px;
+      transition: background .45s;
+      box-shadow: 0 2px 8px #0d223055;
+      position: relative;
+      padding: 2px;
+    }
+    .switch-thumb {
+      height: 22px; width: 22px;
+      border-radius: 50%;
+      background: var(--theme-switch-thumb);
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: left .36s cubic-bezier(.8,1.8,.5,.8), background .45s;
+      box-shadow: 0 1px 8px #222c4444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem;
+    }
+    .switch-icon {
+      position: absolute;
+      left: 9px;
+      top: 6px;
+      font-size: 1.18rem;
+      opacity: 0.6;
+      pointer-events: none;
+      transition: color .4s;
+    }
+    .switch-icon.sun {
+      left: 29px;
+      color: #f9d23b;
+    }
+    .switch-icon.moon {
+      left: 7px;
+      color: #3ed8ec;
+    }
+    .theme-switch input:checked + .switch-label .switch-thumb {
+      left: 30px;
+      background: var(--theme-switch-thumb-dark);
+    }
+    .theme-switch input:not(:checked) + .switch-label .switch-thumb {
+      background: var(--theme-switch-thumb-light);
     }
     .login-fields {
       display: flex;
@@ -71,7 +164,7 @@
       background: var(--input-bg);
       color: var(--text-main);
       font-size: 1rem;
-      transition: box-shadow .2s;
+      transition: box-shadow .2s, background .4s, color .3s;
       outline: none;
     }
     .login-fields input:focus {
@@ -102,37 +195,67 @@
     .chat-header {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       margin-bottom: 8px;
-      padding-bottom: 12px;
+      padding-bottom: 10px;
       border-bottom: 1px solid #293448;
       background: var(--header);
       border-radius: 18px 18px 0 0;
       box-shadow: 0 2px 8px #151b2417;
+      position: relative;
+      transition: background .5s;
     }
     .chat-header img {
-      width: 48px; height: 48px;
+      width: 42px; height: 42px;
       border-radius: 50%;
       object-fit: cover;
       border: 2.5px solid #74ebd5;
+      background: #eee;
+      transition: border .3s;
     }
-    .chat-header .user-info {
+    .user-info-wrap {
       display: flex;
       flex-direction: column;
+      gap: 2px;
       flex: 1;
+      min-width: 0;
     }
-    .chat-header .user-name {
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: #b3e9ff;
-      text-shadow: 0 1px 6px #15294060;
+    .status-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 0.97rem;
     }
-    .chat-header .user-status {
-      font-size: 0.98rem;
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       color: var(--text-online);
       font-weight: 500;
       min-height: 18px;
-      text-shadow: 0 1px 5px #23333c8c;
+      transition: color .5s;
+      font-size: 0.97rem;
+    }
+    .status-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 3px;
+      background: #6cffae;
+      box-shadow: 0 1px 4px #55ffa441;
+      transition: background .4s;
+    }
+    .status-item.offline { color: var(--text-meta);}
+    .status-item.offline .status-dot { background: #b2c7e5; }
+    .status-user {
+      font-weight: bold;
+      color: var(--text-main);
+      margin-right: 7px;
+      min-width: 70px;
+      transition: color .5s;
+      font-size: 0.99rem;
+      letter-spacing: .2px;
     }
     .logout-btn, .clear-btn {
       margin-left: 8px;
@@ -159,7 +282,7 @@
       flex-direction: column;
       gap: 10px;
       scroll-behavior: smooth;
-      transition: box-shadow .3s;
+      transition: box-shadow .3s, background .5s;
     }
     .message-row {
       display: flex;
@@ -178,7 +301,7 @@
       word-break: break-word;
       box-shadow: var(--bubble-shadow);
       animation: slideIn .35s;
-      transition: background .15s;
+      transition: background .15s, color .3s;
       min-width: 38px;
       max-width: 72vw;
     }
@@ -195,6 +318,7 @@
       align-items: center;
       gap: 3px;
       justify-content: flex-end;
+      transition: color .4s;
     }
     .delete-btn {
       background: none;
@@ -222,7 +346,7 @@
       padding: 11px 16px;
       font-size: 1.08rem;
       outline: none;
-      transition: box-shadow .15s;
+      transition: box-shadow .15s, background .5s, color .3s;
     }
     .chat-input-row input:focus { box-shadow: 0 2px 10px #43c6e4a2; }
     .send-btn {
@@ -268,7 +392,7 @@
         height: 66vw; max-height: 68vw;
         min-height: 200px;
       }
-      .chat-header img { width: 40px; height: 40px;}
+      .chat-header img { width: 38px; height: 38px;}
     }
     @media (max-width: 480px) {
       .login-title { font-size: 1.2rem;}
@@ -277,6 +401,16 @@
   </style>
 </head>
 <body>
+  <!-- Tema Butonu (her iki ekranda da) -->
+  <div class="theme-switch" id="themeSwitchBox">
+    <input type="checkbox" id="themeToggle">
+    <label class="switch-label" for="themeToggle">
+      <span class="switch-icon sun" title="Açık Tema">☀️</span>
+      <span class="switch-icon moon" title="Koyu Tema">🌙</span>
+      <span class="switch-thumb"></span>
+    </label>
+  </div>
+
   <div class="login-container" id="loginContainer">
     <div class="login-title">Sohbet Giriş</div>
     <div class="login-fields">
@@ -290,9 +424,11 @@
   <div class="chat-container" id="chatContainer" style="display: none;">
     <div class="chat-header">
       <img id="profilePic" src="" alt="Profil Fotoğrafı">
-      <div class="user-info">
+      <div class="user-info-wrap">
         <span class="user-name" id="displayName"></span>
-        <span class="user-status" id="onlineStatus"></span>
+        <div class="status-list" id="statusList">
+          <!-- Kullanıcı durumları JS ile buraya gelecek -->
+        </div>
       </div>
       <button class="clear-btn" id="clearAllBtn" title="Tüm mesajları sil">🗑️</button>
       <button class="logout-btn" id="logoutBtn">Çıkış</button>
@@ -304,12 +440,40 @@
     </form>
   </div>
   
-  <div class="version-info">Sürüm: v15</div>
+  <div class="version-info">Sürüm: v14</div>
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script>
-    // Yardımcı kodlama fonksiyonları
+    // --- Tema değiştirme ---
+    const themeToggle = document.getElementById('themeToggle');
+    const themeSwitchBox = document.getElementById('themeSwitchBox');
+    // Animasyonlu başlatma, localStorage kaydı
+    function setTheme(theme) {
+      document.body.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      themeToggle.checked = (theme === 'light');
+    }
+    // Başlangıç teması: localStorage varsa oradan, yoksa otomatik
+    (function(){
+      let sysPref = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      let savedTheme = localStorage.getItem('theme') || sysPref;
+      setTheme(savedTheme);
+    })();
+    themeToggle.addEventListener('change', () => {
+      setTheme(themeToggle.checked ? 'light' : 'dark');
+      // Hafif animasyon için body'e class ekleyebilirsin
+      document.body.classList.add('theme-switched');
+      setTimeout(()=>document.body.classList.remove('theme-switched'),500);
+    });
+
+    // Tema butonunu her iki ekranda da görünür tutmak için:
+    function fixThemeBtnZ() {
+      let chatActive = chatContainer.style.display !== "none";
+      themeSwitchBox.style.zIndex = chatActive ? "50" : "20";
+    }
+
+    // ---- Kullanıcı kodlama ve saklama ---
     function b64decode(str) {
       try {
         return decodeURIComponent(escape(atob(str)));
@@ -320,8 +484,6 @@
     function b64encode(str) {
       return btoa(unescape(encodeURIComponent(str)));
     }
-
-    // Kullanıcı bilgileri base64'lü liste (ad, şifre, isim, foto url)
     const userList = [
       {
         u: "ZXJlbnllbA==", // "erenyel"
@@ -336,8 +498,6 @@
         pic: "https://raw.githubusercontent.com/erenyel/sohbet-sitesi/main/eda.png"
       }
     ];
-
-    // Mesajları silme şifresi (yine base64 ile saklı)
     const CLEAR_PW = "MTU5NzUz"; // "159753"
 
     // Firebase config (veritabanı URL'si)
@@ -361,13 +521,12 @@
     const logoutBtn = document.getElementById('logoutBtn');
     const profilePic = document.getElementById('profilePic');
     const displayName = document.getElementById('displayName');
-    const onlineStatus = document.getElementById('onlineStatus');
     const chatMessages = document.getElementById('chatMessages');
     const messageInput = document.getElementById('messageInput');
     const messageForm = document.getElementById('messageForm');
     const clearAllBtn = document.getElementById('clearAllBtn');
+    const statusList = document.getElementById('statusList');
 
-    // Mesajları kaydırma fonksiyonu
     function scrollToBottom() {
       setTimeout(() => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -381,7 +540,6 @@
     function loginUser() {
       const username = usernameInput.value.trim();
       const password = passwordInput.value;
-      // Base64 encode edilmiş hali ile karşılaştır
       const uEnc = b64encode(username);
       const pEnc = b64encode(password);
       const found = userList.find(u => u.u === uEnc && u.p === pEnc);
@@ -406,9 +564,10 @@
       messageInput.value = "";
       loadMessages();
       setOnline(true);
-      monitorOtherUserStatus();
+      monitorStatuses();
       scrollToBottom();
       window.addEventListener("beforeunload", () => setOnline(false));
+      fixThemeBtnZ();
     }
 
     // Çıkış
@@ -417,7 +576,8 @@
       location.reload();
     });
 
-    // Son görülme & çevrimiçi durumu
+    // Son görülme & çevrimiçi durumu (her iki kullanıcıyı göster)
+    let userStatuses = {};
     function setOnline(online) {
       if (!currentUser) return;
       db.ref("users/" + currentUser.username).set({
@@ -426,19 +586,39 @@
       });
     }
 
-    function monitorOtherUserStatus() {
-      db.ref("users/" + otherUser).on("value", snap => {
-        const data = snap.val();
-        if (data && data.online) {
-          onlineStatus.textContent = "Çevrimiçi";
-          onlineStatus.style.color = "#72e8b5";
-        } else if (data && data.lastSeen) {
-          onlineStatus.textContent = "Son görülme: " + timeAgo(data.lastSeen);
-          onlineStatus.style.color = "#8aa3c8";
-        } else {
-          onlineStatus.textContent = "";
-        }
+    // Her iki kullanıcının durumunu izle ve güncelle
+    function monitorStatuses() {
+      const allNames = userList.map(u => b64decode(u.u));
+      allNames.forEach(name => {
+        db.ref("users/" + name).on("value", snap => {
+          userStatuses[name] = snap.val() || {};
+          updateStatusList();
+        });
       });
+    }
+    function updateStatusList() {
+      // Sıra: önce giriş yapan (current), sonra diğer
+      const all = [
+        { 
+          name: currentUser.username,
+          display: currentUser.displayName,
+        },
+        { 
+          name: otherUser,
+          display: userList.find(u=>b64decode(u.u)===otherUser).name,
+        }
+      ];
+      statusList.innerHTML = all.map(u => {
+        const st = userStatuses[u.name] || {};
+        let online = st.online;
+        let txt = online ? "Çevrimiçi" : (st.lastSeen ? ("Son görülme: " + timeAgo(st.lastSeen)) : "");
+        let cls = online ? "" : "offline";
+        return `<span class="status-item ${cls}">
+          <span class="status-dot"></span>
+          <span class="status-user">${u.display}</span>
+          <span class="status-text">${txt}</span>
+        </span>`;
+      }).join("");
     }
 
     function timeAgo(dateStr) {
@@ -555,7 +735,7 @@
 
     messageInput.addEventListener("focus", scrollToBottom);
     setInterval(() => { if (currentUser) setOnline(true); }, 20000);
-    window.onload = () => { usernameInput.focus(); }
+    window.onload = () => { usernameInput.focus(); fixThemeBtnZ(); }
   </script>
 </body>
 </html>
